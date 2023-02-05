@@ -33,17 +33,17 @@ const logger = require('tracer').colorConsole({
   level: process.env.TRACER_DEBUG || 'info' // 'debug'
 })
 logger.debug(' entry ... ')
-logger.info(' set TRACER_DEBUG=info or set IS_DEV=1 to turn on debug/verbose ... ')
+logger.info(' set TRACER_DEBUG=debug or set IS_DEV=1 to turn on debug/verbose ... ')
 
 // const { app, BrowserWindow, ipcMain, dialog } = require('electron')
 const { app, BrowserWindow, dialog, ipcMain, Menu } = require('electron')
-// const ProgressBar = require('electron-progressbar')
+const ProgressBar = require('electron-progressbar')
 
 const fs = require('fs')
 const fsAsync = require('fs/promises')
 const path = require('path')
 // const { spawn } = require('node:child_process')
-// const converter = require('json-2-csv')
+const converter = require('json-2-csv')
 
 const file2lines = require('./file2lines')
 const genRowdata = require('./genRowdata')
@@ -96,7 +96,7 @@ const store = new Store({
 // */
 
 // const Store = require('electron-store')
-const store = new Store()
+const ns = new Store()
 
 /*
 store.set('engineState', {
@@ -132,25 +132,25 @@ const defaultPref = {
 }
 
 // let menuChecked = store.get('menuChecked') || false
-let menuChecked = store.get('menuChecked') || defaultPref.menuChecked
+let menuChecked = ns.get('menuChecked') || defaultPref.menuChecked
 logger.debug('menuChecked: %s', menuChecked)
 
-let splitToSents = store.get('splitToSents') || defaultPref.splitToSents
-let splitToSentsEnabled = store.get('splitToSentsEnabled') || defaultPref.splitToSentsEnabled
-const aliEngine = store.get('aliEngine') || defaultPref.aliEngine
-const aliEngineChecked = store.get('aliEngineChecked') || defaultPref.aliEngineChecked
-const engineState = store.get('engineState') || defaultPref.engineState
-let engineURL = store.get('engineURL') || defaultPref.engineURL
+let splitToSents = ns.get('splitToSents') || defaultPref.splitToSents
+let splitToSentsEnabled = ns.get('splitToSentsEnabled') || defaultPref.splitToSentsEnabled
+const aliEngine = ns.get('aliEngine') || defaultPref.aliEngine
+const aliEngineChecked = ns.get('aliEngineChecked') || defaultPref.aliEngineChecked
+const engineState = ns.get('engineState') || defaultPref.engineState
+let engineURL = ns.get('engineURL') || defaultPref.engineURL
 
-store.set('menuChecked', menuChecked)
-store.set('splitToSents', splitToSents)
-store.set('aliEngine', aliEngine)
-store.set('aliEngineChecked', aliEngineChecked)
-store.set('engineState', engineState)
-store.set('engineURL', engineURL)
+ns.set('menuChecked', menuChecked)
+ns.set('splitToSents', splitToSents)
+ns.set('aliEngine', aliEngine)
+ns.set('aliEngineChecked', aliEngineChecked)
+ns.set('engineState', engineState)
+ns.set('engineURL', engineURL)
 
 // logger.debug("store.store: %j", store.store)
-logger.debug('store.store: ', store.store)
+logger.debug('store.store: ', ns.store)
 
 const handleRadio = engine => {
   // amened radio states & engineURL
@@ -161,10 +161,10 @@ const handleRadio = engine => {
   logger.debug('engineState: ', engineState)
   logger.debug('engineURL: ', engineURL)
 
-  store.set('engineURL', engineURL)
-  store.set('engineState', engineState)
+  ns.set('engineURL', engineURL)
+  ns.set('engineState', engineState)
 
-  logger.debug('store.store: ', store.store)
+  logger.debug('ns.store: ', ns.store)
 }
 
 if (require('electron-squirrel-startup')) {
@@ -311,7 +311,7 @@ const handleCommunication = () => {
 }
 const createWindow = () => {
   // Use saved window size in user-preferences
-  const { width, height } = store.get('windowBounds') | defaultPref.windowBounds
+  const { width, height } = ns.get('windowBounds') | defaultPref.windowBounds
 
   // const mainWindow = new BrowserWindow({
   mainWindow = new BrowserWindow({
@@ -331,7 +331,7 @@ const createWindow = () => {
     // the height, width, and x and y coordinates.
     const { width, height } = mainWindow.getBounds()
     // Now that we have them, save them using the `set` method.
-    store.set('windowBounds', { width, height })
+    ns.set('windowBounds', { width, height })
   })
 
   // mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY);
@@ -713,7 +713,7 @@ const menuTemplate = [
               // mainWindow.showResetNotification = e.checked;
               logger.debug(' checkbox ')
               menuChecked = !menuChecked
-              store.set('menuChecked', menuChecked)
+              ns.set('menuChecked', menuChecked)
             }
           },
           {
@@ -857,7 +857,7 @@ const menuTemplate = [
               )
             // splitToSents = !splitToSents
             splitToSents = false
-            store.set('splitToSents', splitToSents)
+            ns.set('splitToSents', splitToSents)
             }
           },
         {

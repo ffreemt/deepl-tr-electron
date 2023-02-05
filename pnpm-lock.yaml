@@ -12,6 +12,7 @@ specifiers:
   iconv-lite: ^0.6.3
   jest: ^29.4.1
   jschardet: ^3.0.0
+  json-2-csv: ^3.18.0
   nodemon: ^2.0.20
   tracer: ^1.1.6
 
@@ -25,6 +26,7 @@ dependencies:
   iconv-lite: 0.6.3
   jest: 29.4.1
   jschardet: 3.0.0
+  json-2-csv: 3.18.0
   tracer: 1.1.6
 
 devDependencies:
@@ -1263,6 +1265,11 @@ packages:
     resolution: {integrity: sha512-Q6fKUPqnAHAyhiUgFU7BUzLiv0kd8saH9al7tnu5Q/okj6dnupxyTgFIBjVzJATdfIAm9NAsvXNzjaKa+bxVyA==}
     dev: false
 
+  /deeks/2.6.0:
+    resolution: {integrity: sha512-zu/g4fVjPreYuP11f3o5W7TeSRscpnn9LQO15lxIXu66MwOopIxj4jhLDEGMW7JkZYqWEz5JG3qs88kHNMY08g==}
+    engines: {node: '>= 12'}
+    dev: false
+
   /deepmerge/4.3.0:
     resolution: {integrity: sha512-z2wJZXrmeHdvYJp/Ux55wIjqo81G5Bp4c+oELTW+7ar6SogWHajt5a9gO3s3IDaGSAXjDk0vlQKN3rms8ab3og==}
     engines: {node: '>=0.10.0'}
@@ -1300,6 +1307,11 @@ packages:
   /diff-sequences/29.3.1:
     resolution: {integrity: sha512-hlM3QR272NXCi4pq+N4Kok4kOp6EsgOM3ZSpJI7Da3UAs+Ttsi8MRmB6trM/lhyzUxGfOgnpkHtgqm5Q/CTcfQ==}
     engines: {node: ^14.15.0 || ^16.10.0 || >=18.0.0}
+    dev: false
+
+  /doc-path/3.0.6:
+    resolution: {integrity: sha512-fUNXXk+4MbfKkXec41cIyD5DTPISVD0MzMPWX2qz+kL7otFtQRHCkyPaD8qmLyQpfYQWye/z7oXeeD0nQp8HYQ==}
+    engines: {node: '>=12'}
     dev: false
 
   /dompurify/2.4.3:
@@ -2320,6 +2332,14 @@ packages:
     resolution: {integrity: sha512-OYu7XEzjkCQ3C5Ps3QIZsQfNpqoJyZZA99wd9aWd05NCtC5pWOkShK2mkL6HXQR6/Cy2lbNdPlZBpuQHXE63gA==}
     engines: {node: '>=4'}
     hasBin: true
+    dev: false
+
+  /json-2-csv/3.18.0:
+    resolution: {integrity: sha512-+1lxMDaIx71QWVaENrphLb+o9xUY34nxVW6dKiRzFM2YYyxFbIkKNn4J3oVEOn/xxNtkmg8XVGmpZT+wIoi5xw==}
+    engines: {node: '>= 12'}
+    dependencies:
+      deeks: 2.6.0
+      doc-path: 3.0.6
     dev: false
 
   /json-buffer/3.0.1:
