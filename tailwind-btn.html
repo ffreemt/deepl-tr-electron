@@ -1,0 +1,40 @@
+<!-- https://www.geeksforgeeks.org/introduction-to-handsontable-js/ -->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content=
+        "width=device-width, initial-scale=1.0">
+
+    <title>Introduction to Handsontable.js</title>
+    <script src=
+"https://cdn.jsdelivr.net/npm/handsontable@8.2.0/dist/handsontable.full.min.js">
+    </script>
+
+      <link href="./style.css" rel="stylesheet">
+  <link href="./css/all.css" rel="stylesheet">
+
+    <link href=
+"https://cdn.jsdelivr.net/npm/handsontable@8.2.0/dist/handsontable.full.min.css"
+        rel="stylesheet" media="screen">
+</head>
+
+<body>
+    <h1>
+        <center>Create your first data-grid</center>
+    </h1>
+
+<div class="btn btn-accent controls"> button </div>
+
+<div class="btn btn-accent controls">
+  <button id="export-file"><i class="fas fa-user"></i> <i class="fas fa-download"></i> <i class="fa-thin fa-download"></i> <i class="fa-regular fa-file-arrow-down"></i> <i class="fa-duotone fa-folder-arrow-down"></i> Download CSV</button>
+</div>
+
+    <!-- container to wrap the data-grid -->
+    <div class="handsontable-container"></div>
+
+    <script src="index.js"></script>
+</body>
+
+</html>

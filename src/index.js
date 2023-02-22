@@ -14,18 +14,25 @@
 
 // const assert = require('assert')
 
-if (process.env.IS_DEV) {
+// const { app, BrowserWindow, ipcMain, dialog } = require('electron')
+const { app, BrowserWindow, dialog, ipcMain, Menu } = require('electron')
+const ProgressBar = require('electron-progressbar')
+
+const isDev = app.isPackaged ? false : require('electron-is-dev')
+
+// if (process.env.IS_DEV) {
+if (isDev) {
   const devtools = require('electron-debug')
   devtools()
   process.env.ELECTRON_DISABLE_SECURITY_WARNINGS = 'true'
 }
 
-console.log('IS_DEV: ', process.env.IS_DEV)
+console.log('ln30 ELECTRON_IS_DEV: ', process.env.ELECTRON_IS_DEV)
 // logger.debug('IS_DEV: ', process.env.IS_DEV)
 // console.log("debug: ", debug)
 // debug('main.js: %s %s', fn, cl().line)
 
-if (process.env.IS_DEV) process.env.TRACER_DEBUG = 'debug'
+if (isDev) process.env.TRACER_DEBUG = 'debug'
 
 const logger = require('tracer').colorConsole({
   format: '{{timestamp}} <{{title}}>{{file}}:{{line}}: {{message}}',
@@ -33,11 +40,7 @@ const logger = require('tracer').colorConsole({
   level: process.env.TRACER_DEBUG || 'info' // 'debug'
 })
 logger.debug(' entry ... ')
-logger.info(' set TRACER_DEBUG=debug or set IS_DEV=1 to turn on debug/verbose ... ')
-
-// const { app, BrowserWindow, ipcMain, dialog } = require('electron')
-const { app, BrowserWindow, dialog, ipcMain, Menu } = require('electron')
-const ProgressBar = require('electron-progressbar')
+logger.info(' set TRACER_DEBUG=debug or set ELECTRON_IS_DEV=1 to turn on debug/verbose ... ')
 
 const fs = require('fs')
 const fsAsync = require('fs/promises')
@@ -48,7 +51,9 @@ const converter = require('json-2-csv')
 const file2lines = require('./file2lines')
 const genRowdata = require('./genRowdata')
 // const zmqAlign = require('./zmqAlign')
-const restAlign = require('./restAlign')
+// const restAlign = require('./restAlign')
+const deeplTranslate = require('./deeplTranslate')
+
 // const menuTemplate = require('./menuTemplate')
 
 // const Store = require('./store.js')
@@ -74,7 +79,7 @@ let mainWindow
 let col1 = []
 let col2 = []
 // eslint-disable-next-line prefer-const
-let col3 = []
+// let col3 = []
 
 let rowData = ''
 let filename1 = ''
@@ -245,7 +250,8 @@ const loadFile = async (win, file = 1) => {
       // win.webContents.send('file1-content', _)
       // return _
 
-      rowData = genRowdata({ col1, col2, col3 })
+      // rowData = genRowdata({ col1, col2, col3 })
+      rowData = genRowdata({ col1, col2 })
 
       win.webContents.send('rowData', rowData)
       return { success: true, rowData }
@@ -262,6 +268,7 @@ const loadFile = async (win, file = 1) => {
 const handleCommunication = () => {
   ipcMain.removeHandler('save-to-file')
   ipcMain.removeHandler('restore-from-file')
+  ipcMain.removeHandler('update-rowdata')
   ipcMain.handle('save-to-file', async (event, data) => {
     try {
       const { canceled, filePath } = await dialog.showSaveDialog({
@@ -307,11 +314,15 @@ const handleCommunication = () => {
     rowData = rowdata
     logger.debug(" updated rowData: %j", rowData)
     // logger.debug(" updated rowData: %s", JSON.stringify(rowData))
+
+    // also update col1 for further deepltr processing
+    col1 = rowData.map( _ => _.text1 )
   })
 }
+
 const createWindow = () => {
   // Use saved window size in user-preferences
-  const { width, height } = ns.get('windowBounds') | defaultPref.windowBounds
+  const { width, height } = ns.get('windowBounds') || defaultPref.windowBounds
 
   // const mainWindow = new BrowserWindow({
   mainWindow = new BrowserWindow({
@@ -448,14 +459,15 @@ const menuTemplate = [
     label: 'File',
     submenu: [
       {
-        label: 'Open File1',
+        label: 'Open File',
         accelerator: 'CmdOrCtrl+O',
         role: 'open',
         click: async () => { await loadFile(mainWindow) }
       },
       {
         label: 'Open File2',
-        accelerator: 'CmdOrCtrl+P',
+        visible: false,
+        // accelerator: 'CmdOrCtrl+P',
         role: 'open',
         click: async () => {
           logger.debug('open file2')
@@ -489,6 +501,7 @@ const menuTemplate = [
       { type: 'separator' },
       {
         label: "SaveEdit",
+        visible: false,
         accelerator: 'CmdOrCtrl+E',
         click: async () => {
             logger.debug('SaveEdit clicked...')
@@ -499,20 +512,21 @@ const menuTemplate = [
             }
           }
       },
-      { type: 'separator' },
+      // { type: 'separator' },
       {
-        label: 'Align',
-        accelerator: 'CmdOrCtrl+L', // CmdOrCtrl+R
+        label: 'DeeplTr',
+        // accelerator: 'CmdOrCtrl+L',
+        accelerator: 'CmdOrCtrl+T',
         click: async () => {
-          logger.debug('Align clicked...')
+          logger.debug('DeeplTr clicked...')
           logger.debug('\n\n\t=== col1 ', typeof col1, Array.isArray(col1))
           logger.debug('\n\n\t===  col2 ', typeof col2, Array.isArray(col2))
-          logger.debug('\n\n\t=== lines1 ', typeof lines1, Array.isArray(lines1))
-          logger.debug('\n\n\t===  lines2 ', typeof lines2, Array.isArray(lines2))
+          // logger.debug('\n\n\t=== lines1 ', typeof lines1, Array.isArray(lines1))
+          // logger.debug('\n\n\t===  lines2 ', typeof lines2, Array.isArray(lines2))
 
           const progressBar = new ProgressBar({
             text: 'diggin...',
-            detail: 'Fetching alignment result... make sure the net is up '
+            detail: 'Fetching deepltr result... make sure the net is up and you can access deepl.com '
           })
           progressBar
             .on('completed', function () {
@@ -522,19 +536,24 @@ const menuTemplate = [
             .on('aborted', function () {
               console.info('aborted...')
             })
+
           // let rowData  // moved to top as global
+          let trtext = ''
           try {
             // rowData = await zmqAlign(col1, col2)
             // rowData = await zmqAlign(lines1, lines2)
             // rowData = await restAlign(lines1, lines2)
-            if (engineURL.match(/5555/) ) {
-              rowData = await restAlign(col1, col2)
-            } else {
-              rowData = await restAlign(col1, col2, 'http://forindo.net:7860/api/predict')
-            }
+            // if (engineURL.match(/5555/) ) {
+              // rowData = await restAlign(col1, col2)
+            // } else {
+              // rowData = await restAlign(col1, col2, 'http://forindo.net:7860/api/predict')
+            // }
+            trtext = await deeplTranslate(col1.join('\n'))
+
+            logger.debug('trtext: %s', trtext)
           } catch (e) {
             logger.error(e.message)
-            // rowData = { text1: e.name, text2: e.message }
+            rowData = { text1: e.name, text2: e.message }
             dialog.showMessageBox(
               {
                 message: `${e.name}: ${e.message}`,
@@ -543,12 +562,18 @@ const menuTemplate = [
                 type: 'warning' // none/info/error/question/warning https://newsn.net/say/electron-dialog-messagebox.html
               }
             )
-            return null
+            trtext = e.name + ': ' + e.message
           } finally {
             progressBar.setCompleted()
           }
 
-          // logger.debug(' rowData from col1 col2: %j', rowData)
+          // fix rowData
+          col2 = trtext.trim().split(/[\r\n]+/)
+          logger.debug('col1: %j', col1.slice(0,5))
+          logger.debug('col2: %j', col2.slice(0,5))
+
+          rowData = genRowdata({ col1, col2 })
+          logger.debug(' rowData from col1 col2: %j', rowData)
 
           if (!rowData) {
             logger.error(' rowData is undefined ')
@@ -561,44 +586,10 @@ const menuTemplate = [
               }
             })
 
-            // at least one metric not zero or empty
-            let metric = rowData.map(el => el.metric)
-            let ratio
-            if (metric.length > 0) {
-              ratio = metric.reduce( (s, e) => s + !!e, 0) / metric.length
-              ratio = ratio.toFixed(3)
-            } else { ratio = 0 }
-            logger.debug("sum of metric: ", )
-
-            let only = ''
-            if (ratio < .2) only = 'only '
-
-            if (ratio < 0.01) {
-              dialog.showMessageBox(
-                {
-                  title: 'ratio',
-                  message: `
-  ptextpad failed to suggest any of aligned pairs, sorry about that.
-  There can be various reasons for the failure.
-                  `,
-                  buttons: ['OK'],
-                  type: 'info',
-                })
-            } else {
-             dialog.showMessageBox(
-                {
-                  title: 'ratio',
-                  message: `
-  ptextpad ${only}managed to successfully suggest
-  about ${ratio * 100}% of aligned pairs
-                  `,
-                  buttons: ['OK'],
-                  type: 'info',
-                })
-            }
-
             // if (metric.some( el => !!el )) {
             mainWindow.webContents.send('rowData', rowData)
+
+            /*
             if (ratio < 0.1) {
               let extra_msg = ''
               if(engineURL.match(/5555/)) {
@@ -623,6 +614,8 @@ const menuTemplate = [
                 }
               )
             }
+            // */
+
           }
         }
       },
@@ -635,7 +628,7 @@ const menuTemplate = [
           if (!rowData) { // undefined or empty
             dialog.showMessageBox(
               {
-                message: 'Empty data...Try to Align first.',
+                message: 'Empty data...Try to load a file or paste some text to a cell in text1  first.',
                 title: 'Warning',
                 buttons: ['OK'],
                 type: 'warning'
@@ -644,7 +637,8 @@ const menuTemplate = [
             return null
           }
           // proceed to save rowData
-          let savedFilename = `${path.parse(filename1).name}-${path.parse(filename2).name}.csv`
+          // let savedFilename = `${path.parse(filename1).name}-${path.parse(filename2).name}.csv`
+          let savedFilename = `${path.parse(filename1).name}-tr.csv`
 
           savedFilename = path.join(path.parse(path.resolve(filename1)).dir, savedFilename)
 

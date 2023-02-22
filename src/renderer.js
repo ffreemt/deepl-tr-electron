@@ -80,6 +80,11 @@ const columnDefs = [
     wrapText: true,
     cellEditor: 'agLargeTextCellEditor',
     // cellEditorPopup: true,
+    onCellValueChanged: _ => {
+        let rowData = []
+        gridOptions.api.forEachNode(node => rowData.push(node.data))
+        ipcRenderer.invoke("update-rowdata", rowData)
+    },  // await ipcRenderer.invoke("update-rowdata", rowData)
   },
   {
     headerName: 'text2',
@@ -90,13 +95,18 @@ const columnDefs = [
     autoHeight: true,
     wrapText: true,
     cellEditor: 'agLargeTextCellEditor',
+    onCellValueChanged: _ => {
+        let rowData = []
+        gridOptions.api.forEachNode(node => rowData.push(node.data))
+        ipcRenderer.invoke("update-rowdata", rowData)
+    },
   },
-  {
-    headerName: 'metric',
-    field: "metric",
-    editable: true,
-    width: 85
-  },
+  // {
+    // headerName: 'metric',
+    // field: "metric",
+    // editable: true,
+    // width: 85
+  // },
 ]
 const gridOptions = {
   columnDefs,
@@ -238,7 +248,6 @@ ipcRenderer.on('saveEdit',
     }
   }
 )
-
 
 const gridDiv = document.getElementById("grid");
 new Grid(gridDiv, gridOptions);
