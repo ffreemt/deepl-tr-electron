@@ -3,4 +3,22 @@
 
 deepl translate using deepl-scraper-pp2, electron and ag-grid
 
-Coming soon...
+## Features
+  * Translate from various languages to Chinese
+  * Translate from Chinese to English
+
+Currently, selecting a target language is not yet implemented.
+
+## Installation (currently Windows only)
+Download from [https://github.com/ffreemt/deepl-tr-electron/releases](https://github.com/ffreemt/deepl-tr-electron/releases) and click through.
+
+## Usuage
+
+* Execute the app as usual
+* Click a cell or press Enter to edit; Click some other cell or rress Enter to exit editing.
+
+## For Developers
+
+* Clone the repo
+* Run `npm install` or `yarn` to install packages
+* `npx electron .`

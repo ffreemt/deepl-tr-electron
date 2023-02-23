@@ -80,9 +80,16 @@ const lines2 = () => {
 console.log("index.js ln80 path.join(process.resourcesPath, 'app'): ", path.join(process.resourcesPath, 'app'))
 console.log("index.js ln80 path.join(__dirname, 'app'): ", path.join(__dirname, 'app'))
 
+console.log(path.join(path.dirname(__dirname), 'src', 'app'))
+
 //********* start resapi server at port 8000
+let pythonPath
+if (app.isPackaged) {
+  pythonPath = path.join(process.resourcesPath, 'app', 'install', 'python.exe')
+} else {
+  pythonPath = path.join(__dirname, 'app', 'install', 'python.exe')
+}
 const { spawn } = require('node:child_process')
-const pythonPath = path.join(__dirname, 'app', 'install', 'python.exe')
 const python = spawn(pythonPath, ['-s', '-m', 'deepl_scraper_pp2.run_uvicorn'])
 
 python.stdout.on('data', data => {

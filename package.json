@@ -52,6 +52,15 @@
       "createDesktopShortcut": true,
       "allowElevation": true
     },
+    "extraResources": [
+      {
+        "from": "./src/app/",
+        "to": "app",
+        "filter": [
+          "**/*"
+        ]
+      }
+    ],
     "asar": true
   }
 }
