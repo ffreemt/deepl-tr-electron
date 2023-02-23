@@ -8,6 +8,7 @@
     "dev": "electron . --trace-warnings",
     "gen-style": "cross-env NODE_DEV=production tailwindcss -i ./src/index.css -o ./src/style.css",
     "builder": "electron-builder --win",
+    "builder-test": "electron-builder --win --dir",
     "builder-yaml": "electron-builder --win --config builder-config.yaml",
     "test": "mocha -t 9000",
     "testj": "jest --testTimeout 9000"
@@ -40,5 +41,17 @@
     "jschardet": "^3.0.0",
     "json-2-csv": "^3.18.0",
     "tracer": "^1.1.6"
+  },
+  "build": {
+    "win": {
+      "icon": "build/world.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "allowElevation": true
+    },
+    "asar": true
   }
 }

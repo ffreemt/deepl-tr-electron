@@ -77,11 +77,13 @@ const lines2 = () => {
 // const columnDefs = headers.map(el => { return { headerName: el, field: el } })
 
 
-console.log("index.js ln80: process.resourcesPath: ", path.resolve(process.resourcesPath))
+console.log("index.js ln80 path.join(process.resourcesPath, 'app'): ", path.join(process.resourcesPath, 'app'))
+console.log("index.js ln80 path.join(__dirname, 'app'): ", path.join(__dirname, 'app'))
 
 //********* start resapi server at port 8000
 const { spawn } = require('node:child_process')
-const python = spawn('./app/install/python.exe', ['-s', '-m', 'deepl_scraper_pp2.run_uvicorn'])
+const pythonPath = path.join(__dirname, 'app', 'install', 'python.exe')
+const python = spawn(pythonPath, ['-s', '-m', 'deepl_scraper_pp2.run_uvicorn'])
 
 python.stdout.on('data', data => {
   console.log(`stdout: ${data}`)
