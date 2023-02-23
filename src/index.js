@@ -52,7 +52,8 @@ const file2lines = require('./file2lines')
 const genRowdata = require('./genRowdata')
 // const zmqAlign = require('./zmqAlign')
 // const restAlign = require('./restAlign')
-const deeplTranslate = require('./deeplTranslate')
+// const deeplTranslate = require('./deeplTranslate')
+const trText = require('./trText')
 
 // const menuTemplate = require('./menuTemplate')
 
@@ -74,6 +75,28 @@ const lines2 = () => {
 // const zipLongest = (...args) => Array(Math.max(...args.map(a => a.length))).fill('').map((_, i) => args.map(a => a[i] === undefined ? '' : a[i]))
 // const headers = ['text1', 'text2', 'metric']
 // const columnDefs = headers.map(el => { return { headerName: el, field: el } })
+
+
+console.log("index.js ln80: process.resourcesPath: ", path.resolve(process.resourcesPath))
+
+//********* start resapi server at port 8000
+const { spawn } = require('node:child_process')
+const python = spawn('./app/install/python.exe', ['-s', '-m', 'deepl_scraper_pp2.run_uvicorn'])
+
+python.stdout.on('data', data => {
+  console.log(`stdout: ${data}`)
+});
+
+python.stderr.on('data', data => {
+  console.error(`stderr: ${data}`)
+})
+
+python.on('close', code => {
+  console.log(`child process exited with code ${code}`);
+})
+
+// *********/
+
 
 let mainWindow
 let col1 = []
@@ -538,7 +561,8 @@ const menuTemplate = [
             })
 
           // let rowData  // moved to top as global
-          let trtext = ''
+          // let trtext = ''
+          let pairsList = [['', '']]
           try {
             // rowData = await zmqAlign(col1, col2)
             // rowData = await zmqAlign(lines1, lines2)
@@ -548,9 +572,11 @@ const menuTemplate = [
             // } else {
               // rowData = await restAlign(col1, col2, 'http://forindo.net:7860/api/predict')
             // }
-            trtext = await deeplTranslate(col1.join('\n'))
+            // trtext = await deeplTranslate(col1.join('\n'))
+            pairsList = await trText(col1.join('\n'))
 
-            logger.debug('trtext: %s', trtext)
+            // logger.debug('trtext: %s', trtext)
+            logger.debug('pairsList.slice(0, 5): %j', pairsList.slice(0, 5))
           } catch (e) {
             logger.error(e.message)
             rowData = { text1: e.name, text2: e.message }
@@ -562,18 +588,22 @@ const menuTemplate = [
                 type: 'warning' // none/info/error/question/warning https://newsn.net/say/electron-dialog-messagebox.html
               }
             )
-            trtext = e.name + ': ' + e.message
+            // trtext = e.name + ': ' + e.message
+            pairsList = [[e.name, e.message]]
           } finally {
             progressBar.setCompleted()
           }
 
           // fix rowData
-          col2 = trtext.trim().split(/[\r\n]+/)
-          logger.debug('col1: %j', col1.slice(0,5))
-          logger.debug('col2: %j', col2.slice(0,5))
+          // col2 = trtext.trim().split(/[\r\n]+/)
 
-          rowData = genRowdata({ col1, col2 })
-          logger.debug(' rowData from col1 col2: %j', rowData)
+          // logger.debug('col1: %j', col1.slice(0,5))
+          // logger.debug('col2: %j', col2.slice(0,5))
+          // rowData = genRowdata({ col1, col2 })
+
+          rowData = genRowdata({ col1: pairsList, isRow: true})
+          // logger.debug(' rowData from col1 col2: %j', rowData)
+          logger.debug(' rowData from pairsList: %j', pairsList)
 
           if (!rowData) {
             logger.error(' rowData is undefined ')
@@ -795,6 +825,7 @@ const menuTemplate = [
     submenu: [
       {
         label: 'AlignEngine',
+        visible: false,
         submenu: [{
           label: 'forindo-dezbee(5555)',
           type: 'radio',
@@ -833,6 +864,7 @@ const menuTemplate = [
       },
       {
         label: 'SplitToSents',
+        visible: false,
         submenu: [{
           label: "yes",
           enabled: false,
@@ -854,12 +886,117 @@ const menuTemplate = [
             ns.set('splitToSents', splitToSents)
             }
           },
-        {
-          label: 'no',
+          {
+            label: 'no',
+            type: 'radio',
+            checked: true,
+          }
+        ]
+      },
+      {
+        label: 'TargetLang1',
+        // visible: false,
+        // enabled: false,
+        submenu: [
+          {
+            label: "en",
+            enabled: false,
+            checked: false,
+            type: 'radio',
+            click: e => {
+              logger.debug(' TargetLang1 checkbox ')
+                dialog.showMessageBox(
+                  {
+                    title: 'coming soon...',
+                    message: `Not implemented yet, stay tuned.`,
+                    buttons: ['OK'],
+                    type: 'info'
+                  }
+                )
+              targetLang1_en = false
+              ns.set('targetLang1_en', targetLang1_en)
+            }
+          },
+          {
+            label: 'zh',
+            enabled: false,
+            checked: false,
+            type: 'radio',
+          },
+          {
+            label: 'de',
+            enabled: false,
+            checked: false,
+            type: 'radio',
+          },
+          {
+            label: 'fr',
+            enabled: false,
+            checked: false,
+            type: 'radio',
+          },
+          {
+            label: 'it',
+            enabled: false,
+            checked: false,
+            type: 'radio',
+            // visible: false
+          },
+          {
+            label: 'ru',
+            enabled: false,
+            checked: false,
+            type: 'radio',
+            // visible: false
+          },
+          {
+            label: 'ja',
+            enabled: false,
+            checked: false,
+            type: 'radio',
+            // visible: false
+          },
+          {
+            label: 'dummy',
+            enabled: true,
+            checked: true,
+            type: 'radio',
+            visible: false
+          },
+        ]
+      },
+      {
+        label: 'TargetLang2',
+        // visible: false,
+        enabled: false,
+        submenu: [{
+          label: "en",
+          enabled: false,
+          checked: false,
           type: 'radio',
-          checked: true,
-        }
-        ]}
+          click: e => {
+            logger.debug(' TargetLang1 checkbox ')
+              dialog.showMessageBox(
+                {
+                  title: 'coming soon...',
+                  message: `Not implemented yet, stay tuned.`,
+                  buttons: ['OK'],
+                  type: 'info'
+                }
+              )
+            // splitToSents = !splitToSents
+            targetLang2_en = false
+            ns.set('targetLang2_en', targetLang1_en)
+            }
+          },
+          {
+            label: 'zh',
+            enabled: false,
+            checked: false,
+            type: 'radio',
+          }
+        ]
+      },
     ]
   },
   // =================

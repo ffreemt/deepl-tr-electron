@@ -29,10 +29,10 @@ logger.debug('test-en.txt lines1: %s', lines1.slice(0, 3))
 // logger.debug('test-zh.txt lines2: %j', lines2.slice(0, 2))
 
 // yarn test -f "@1 index"
-describe('@1 deeplTranslate: sanity test ', () => {
+describe('@1-deeplTranslate-sanity-test', () => {
   // context(' ==== ', () => {
 
-    test('#1  test-en.txt/test-zh.txt  ', async () => {
+    test('#1-deeplTranslate-test-en.txt', async () => {
       // let [lines1a, lines2a] = [lines1.slice(0,10), lines2.slice(0,10)]
       const result = await deeplTranslate(lines1.slice(0,10).join("\n"))
       logger.debug('result: %s', result)
@@ -43,7 +43,7 @@ describe('@1 deeplTranslate: sanity test ', () => {
       expect(lines.length).to.equal(10)
     })
 
-    test('#2 test-en.txt/test-zh.txt  ', async () => {
+    test('#2-deeplTranslate-test-en.txt', async () => {
       const result = await deeplTranslate(lines1.slice(0,14).join("\n"))
       logger.debug('result: %j', result)
 

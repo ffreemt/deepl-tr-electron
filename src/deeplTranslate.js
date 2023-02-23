@@ -18,7 +18,7 @@ const logger = require('tracer').colorConsole({
 const port = 8000
 
 // const restAlign = async (lines1, lines2, url = null, split2sents = false) => {
-const deeplTranslate = async (text, url=null, from_lang=null, to_lang=null) => {
+const deeplTranslate = async (text, url=null, fromLang=null, toLang=null) => {
   // text is string not list
 
   // if (!url) url = `http://forindo.net:${port}/post/`
@@ -29,7 +29,7 @@ const deeplTranslate = async (text, url=null, from_lang=null, to_lang=null) => {
   // mlbee 7860
   // const data = { data: [text1, text2, false, false] }
 
-  const data = { text, from_lang, to_lang }
+  const data = { text, from_lang: fromLang, to_lang: toLang }
 
   let rep
   try {
