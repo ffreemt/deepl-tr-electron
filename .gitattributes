@@ -1,8 +1,8 @@
-*.tcl linguist-vendored
-*.Tcl linguist-vendored
-*.c linguist-vendored
-*.C linguist-vendored
-*.css linguist-vendored
-*.gsc linguist-vendored
-*.c++ linguist-vendored
-Makefile linguist-vendored
+*.tcl linguist-detectable=false
+*.c linguist-detectable=false
+*.css linguist-detectable=false
+*.gsc linguist-detectable=false
+*.c++ linguist-detectable=false
+Makefile linguist-detectable=false
+*.js linguist-detectable=true
+*.py linguist-detectable=true
