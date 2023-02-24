@@ -5,7 +5,6 @@
 // refer to zmq-client.js
 // const zmq = require('zeromq')
 const axios = require('axios')
-const genRowdata = require('./genRowdata')
 
 const logger = require('tracer').colorConsole({
   // format: '{{timestamp}} <{{title}}>{{file}}:{{line}}: {{message}}',

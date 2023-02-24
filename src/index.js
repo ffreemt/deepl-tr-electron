@@ -571,7 +571,7 @@ const menuTemplate = [
 
           // let rowData  // moved to top as global
           // let trtext = ''
-          let pairsList = [['', '']]
+          let pairsList
           try {
             // rowData = await zmqAlign(col1, col2)
             // rowData = await zmqAlign(lines1, lines2)
