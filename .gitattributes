@@ -3,3 +3,4 @@
 *.css linguist-vendored
 *.gsc linguist-vendored
 *.c++ linguist-vendored
+Makefile linguist-vendored
