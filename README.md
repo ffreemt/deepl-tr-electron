@@ -3,6 +3,8 @@
 
 deepl translate using deepl-scraper-pp2, electron and ag-grid
 
+![deepl-tr-electron illustrated](https://raw.githubusercontent.com/ffreemt/deepl-tr-electron/main/data/deepl-tr-electron.png)
+
 ## Features
   * Translate from various languages to Chinese
   * Translate from Chinese to English
