@@ -1,6 +1,6 @@
 {
   "name": "deepl-tr-el",
-  "version": "0.1.0-1",
+  "version": "0.1.0-2",
   "description": "deepl translate using electron, deepl-scraper-pp2 and ag-grid",
   "main": "src/index.js",
   "main1": "index.js",
@@ -40,6 +40,9 @@
     "iconv-lite": "^0.6.3",
     "jschardet": "^3.0.0",
     "json-2-csv": "^3.18.0",
+    "mammoth": "^1.5.1",
+    "office-text-extractor": "^2.0.0",
+    "python-shell": "^5.0.0",
     "tracer": "^1.1.6"
   },
   "build": {
