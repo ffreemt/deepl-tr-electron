@@ -9,11 +9,11 @@ deepl translate using deepl-scraper-pp2, electron and ag-grid
   * Translate between various languages pairs (select a target language from Options)
   * Save .csv and .docx (topdown and side-by-side)
     * topdown format: source text highlighted, ready for one-click-hide
-    
-           ![docx](https://raw.githubusercontent.com/ffreemt/deepl-tr-electron/main/data/docx.png)
+
     * side-by-side format: a two-column table
-   
-           ![docxtable](https://raw.githubusercontent.com/ffreemt/deepl-tr-electron/main/data/docx-t.png)
+
+![docx](https://raw.githubusercontent.com/ffreemt/deepl-tr-electron/main/data/docx.png)
+ ![docxtable](https://raw.githubusercontent.com/ffreemt/deepl-tr-electron/main/data/docx-t.png)
 
 Note '/' in source text will be replaced by '-' to circumvent a werid problem (text following '/' is discarded).
 
