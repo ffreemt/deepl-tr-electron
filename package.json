@@ -43,7 +43,8 @@
     "mammoth": "^1.5.1",
     "office-text-extractor": "^2.0.0",
     "python-shell": "^5.0.0",
-    "tracer": "^1.1.6"
+    "tracer": "^1.1.6",
+    "wait-on": "^7.0.1"
   },
   "build": {
     "win": {

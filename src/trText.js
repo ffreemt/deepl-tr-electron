@@ -18,6 +18,10 @@ const trText = async (text, fromLang = null, to_lang = null, limit = null) => {
     ch = splitText(text)
     el = ch[0]
   */
+
+  // for some reason, text following / is ignored, hence the subs
+  text = text.replace(/\//g, '-')
+
   let res = []
   // splitText(text).forEach( el =>
   for (const el of splitText(text)) {

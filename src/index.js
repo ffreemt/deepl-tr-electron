@@ -47,6 +47,7 @@ const fsAsync = require('fs/promises')
 const path = require('path')
 // const { spawn } = require('node:child_process')
 const converter = require('json-2-csv')
+const { PythonShell } = require('python-shell')
 
 const file2lines = require('./file2lines')
 const genRowdata = require('./genRowdata')
@@ -90,19 +91,30 @@ if (app.isPackaged) {
   pythonPath = path.join(__dirname, 'app', 'install', 'python.exe')
 }
 const { spawn } = require('node:child_process')
-const python = spawn(pythonPath, ['-s', '-m', 'deepl_scraper_pp2.run_uvicorn'])
 
-python.stdout.on('data', data => {
-  console.log(`stdout: ${data}`)
-});
+const run_deepl_server = () => {
+  const python = spawn(pythonPath, ['-s', '-m', 'deepl_scraper_pp2.run_uvicorn'])
 
-python.stderr.on('data', data => {
-  console.error(`stderr: ${data}`)
-})
+  python.stdout.on('data', data => {
+    console.log(`stdout: ${data}`)
+  });
 
-python.on('close', code => {
-  console.log(`child process exited with code ${code}`);
-})
+  python.stderr.on('data', data => {
+    console.error(`stderr: ${data}`)
+
+  })
+
+  python.on('close', code => {
+    console.log(`child process exited with code ${code}`);
+  })
+}
+
+try {
+  logger.debug('starting run_deepl_server()')
+  run_deepl_server()
+} catch (e) {
+  logger.debug(e.name + ': ' + e.message)
+}
 
 // *********/
 
@@ -113,9 +125,10 @@ let col2 = []
 // eslint-disable-next-line prefer-const
 // let col3 = []
 
-let rowData = ''
+let rowData = {}
 let filename1 = ''
 let filename2 = ''
+let savedFilename = ''
 
 const isMac = process.platform === 'darwin'
 // const { app, Menu } = require('electron')
@@ -152,6 +165,10 @@ const engineNameMap = {
   localhost_mlbee: 'http://localhost:7860'
 }
 
+const langList = ['zh', 'en', 'de', 'fr', 'es', 'pt', 'it', 'nl', 'pl', 'ru', 'ja']
+// const targetLang1 = Object.fromEntries(langList.map((x) => [x, false]))
+// targetLang1.zh = true  // default to zh
+
 const defaultPref = {
   splitToSents: false,
   splitToSentsEnabled: true,
@@ -165,7 +182,9 @@ const defaultPref = {
     localhost_dezbee: false,
     localhost_mlbee: false
   },
-  engineURL: engineNameMap.forindo_dezbee
+  engineURL: engineNameMap.forindo_dezbee,
+  targetLang1: 'zh', // actually state true/false
+  rowdata2file: 'rowdata2docx',
 }
 
 // let menuChecked = store.get('menuChecked') || false
@@ -179,15 +198,127 @@ const aliEngineChecked = ns.get('aliEngineChecked') || defaultPref.aliEngineChec
 const engineState = ns.get('engineState') || defaultPref.engineState
 let engineURL = ns.get('engineURL') || defaultPref.engineURL
 
+// hard reset ns
+// ns.set('targetLang1', 'zh')
+
 ns.set('menuChecked', menuChecked)
 ns.set('splitToSents', splitToSents)
 ns.set('aliEngine', aliEngine)
 ns.set('aliEngineChecked', aliEngineChecked)
 ns.set('engineState', engineState)
 ns.set('engineURL', engineURL)
+ns.set('rowdata2file', ns.get('rowdata2file') || defaultPref.rowdata2file)
+ns.set('targetLang1', ns.get('targetLang1') || defaultPref.targetLang1)
 
 // logger.debug("store.store: %j", store.store)
 logger.debug('store.store: ', ns.store)
+
+const waitOn = require('wait-on')
+const checkPort = async (opts={}) => {
+  if (!opts.port) opts.port = 8000
+  if (!opts.timeout) opts.timeout = 15000 // 15s
+  opts.resources = [ `http://127.0.0.1:${opts.port}/docs` ]
+  delete opts.port
+
+  // try 5 times
+  for (const _ of [...Array(5).keys()]){
+    logger.debug(` checkPort ${_ + 1}/5`)
+    try {
+      await waitOn(opts)
+      return 'server ready'
+    } catch (e) {
+      // return e.name + ': ' + e.message
+      logger.error(`checkPort: failed ${_ + 1} - ${e.name}: ${e.message}`)
+      if (_ >= 4) {
+        throw e
+      } else {
+        // try to rerun deepl_scraper_pp2.run_uvicorn
+        try {
+          logger.debug(`re-starting run_deepl_server(): ${_ + 1}`)
+          run_deepl_server()
+        } catch (e) {
+          logger.debug(e.name + ': ' + e.message)
+        }
+      }
+    }
+  }
+}
+
+// python-shell <=> rowdata2file in python
+const onSaveDocx = () => {
+  const pyscript = path.join(__dirname, 'pyscript.py')
+  logger.debug('onSaveDocx pyscript.py: %s', pyscript)
+
+  // pythonPath = path.join(process.resourcesPath, 'app', 'install', 'python.exe')
+  logger.debug('onSaveDocx pythonPath: %s', pythonPath)
+
+  // const pyshell = new PythonShell(pyscript, { mode: 'json', pythonPath })
+  const pyshell = new PythonShell(pyscript, { mode: 'binary', pythonPath })
+
+  const _ = {rowdata: rowData, infilepath: savedFilename, rowdata2file: ns.get('rowdata2file')}
+
+  logger.debug(`ns.get('rowdata2file'): ${ns.get('rowdata2file')}`)
+
+  pyshell.childProcess.stdin.write(JSON.stringify(_))
+  pyshell.childProcess.stdin.end()
+
+  let fileloc = savedFilename.replace(/(\.\w+)?$/, '.docx')
+  logger.debug(`ns.get('rowdata2file'): ${ns.get('rowdata2file')}`)
+
+  if (ns.get('rowdata2file').endsWith('docx_t')) {
+    fileloc = fileloc.replace(/\.docx$/, '-t.docx')
+  }
+  dialog.showMessageBox(
+    {
+      message: `Saving file at ${fileloc}`,
+      title: 'Info',
+      buttons: ['OK'],
+      type: 'info' // none/info/error/question/warning
+    }
+  )
+
+  pyshell.on('message', (result) => {
+    logger.debug('result: %s', result)
+    dialog.showMessageBox(
+      {
+        message: result,
+        title: 'Info',
+        buttons: ['OK'],
+        type: 'info' // none/info/error/question/warning
+      }
+    )
+  })
+
+  pyshell.end((err) => {
+    if (err) {
+        logger.error(err.name + ': ' + err.message)
+        dialog.showMessageBox(
+          {
+            message: `${err.name}: ${err.message.slice(0,800)}
+Unfortunately, the local deepl server failed to start, for some reason.
+There can be various reasons: net too slow, the remote deepl server can't
+be accessed quickly etc. Before the cause is found, you can try to restart
+the program and hopefully it will temporarily fix the problem.
+`,
+            title: 'Error',
+            buttons: ['OK'],
+            type: 'error' // none/info/error/question/warning
+          }
+        )
+    }
+  })
+}
+
+const handleTargetLang1 = lang => {
+  // amened targetLang1 states
+  for (const _ in targetLang1) {
+    if (_ === lang) { targetLang1[_] = true } else { targetLang1[_] = false }
+  }
+  // logger.debug('targetLang1 tate: ', targetLang1)
+
+  ns.set('targetLang1', targetLang1)
+  // logger.debug('ns.store: ', ns.store)
+}
 
 const handleRadio = engine => {
   // amened radio states & engineURL
@@ -468,6 +599,97 @@ ipcMain.handle("save-to-file-", async (event, data) => {
 
 // */
 
+// menu part
+const submenuTargetLang1 = langList.map(
+  label => ({
+    label,
+    checked: ns.get('targetLang1')===label,
+    type: 'radio',
+    click: evt => {
+      ns.set('targetLang1', label)
+      logger.debug('set to ', label)
+      logger.debug('ns.store', ns.store)
+    }
+  })
+)
+
+const submenuTargetLang1b = langList.map(
+  label => ({
+    label,
+    checked: ns.get('targetLang1')[label],
+    type: 'radio',
+    click: evt => {handleTargetLang1(`'${label}'`);logger.debug('targetlang set to ', label);}
+  })
+)
+logger.debug('submenuTargetLang1: %j', submenuTargetLang1)
+
+const submenuTargetLang1a = [
+  {
+    label: 'en',
+    enabled: true,
+    checked: false,
+    type: 'radio',
+    click: e => {
+      logger.debug(' TargetLang1 en ')
+      dialog.showMessageBox(
+        {
+          title: 'coming soon...',
+          message: `set to en`,
+          buttons: ['OK'],
+          type: 'info'
+        }
+      )
+      handleTargetLang1('en')
+    }
+  },
+  {
+    label: 'zh',
+    enabled: true,
+    checked: false,
+    type: 'radio',
+  },
+  {
+    label: 'de',
+    enabled: true,
+    checked: false,
+    type: 'radio',
+  },
+  {
+    label: 'fr',
+    enabled: true,
+    checked: false,
+    type: 'radio',
+  },
+  {
+    label: 'it',
+    enabled: true,
+    checked: false,
+    type: 'radio',
+    // visible: false
+  },
+  {
+    label: 'ru',
+    enabled: true,
+    checked: false,
+    type: 'radio',
+    // visible: false
+  },
+  {
+    label: 'ja',
+    enabled: true,
+    checked: false,
+    type: 'radio',
+    // visible: false
+  },
+  {
+    label: 'dummy',
+    enabled: true,
+    checked: true,
+    type: 'radio',
+    visible: false
+  },
+]
+
 const menuTemplate = [
   // { role: 'appMenu' }
   ...(isMac
@@ -522,7 +744,7 @@ const menuTemplate = [
             dialog.showMessageBox(
               {
                 message: 'Loading File 2 canceled.',
-                title: 'Info',
+                title: 'Warning',
                 buttons: ['OK'],
                 type: 'warning' // none/info/error/question/warning https://newsn.net/say/electron-dialog-messagebox.html
               }
@@ -568,6 +790,27 @@ const menuTemplate = [
             .on('aborted', function () {
               console.info('aborted...')
             })
+
+          // check server status
+          try {
+            await checkPort()
+            logger.debug("server ready")
+            // everything OK
+          } catch (e) {
+            logger.error(`${e.name}: ${e.message}`)
+            dialog.showMessageBox(
+              {
+                message: `${e.name}: ${e.message}
+Looks like the local deepl server is not running for some reason. `,
+                title: 'Error',
+                buttons: ['OK'],
+                type: 'error' // none/info/error/question/warning https://newsn.net/say/electron-dialog-messagebox.html
+              }
+            )
+            return
+          } finally {
+            progressBar.setCompleted()
+          }
 
           // let rowData  // moved to top as global
           // let trtext = ''
@@ -659,8 +902,42 @@ const menuTemplate = [
         }
       },
       {
-        label: 'Save(csv)',
+        label: 'Save(docx)',
         accelerator: 'CmdOrCtrl+S',
+        click: async () => {
+          logger.debug('SaveDocx clicked...')
+
+          if (!rowData) { // undefined or empty
+            dialog.showMessageBox(
+              {
+                message: 'Empty data...Try to load a file or paste some text to a cell in text1  first.',
+                title: 'Warning',
+                buttons: ['OK'],
+                type: 'warning'
+              }
+            )
+            return null
+          }
+          // proceed to save rowData
+          // let savedFilename = `${path.parse(filename1).name}-${path.parse(filename2).name}.csv`
+          savedFilename = `${path.parse(filename1).name}-tr.csv`
+
+          savedFilename = path.join(path.parse(path.resolve(filename1)).dir, savedFilename)
+
+          logger.debug(' onSaveDocx savedFilename: ', savedFilename)
+
+          // talk to pyshell
+          try {
+            onSaveDocx()
+          } catch (e) {
+            logger.debug(`${e.name}: ${e.message}`)
+            return null
+          }
+        }
+      },
+      {
+        label: 'Save(csv)',
+        // accelerator: 'CmdOrCtrl+S',
         click: async () => {
           logger.debug('SaveCsv clicked...')
 
@@ -677,11 +954,11 @@ const menuTemplate = [
           }
           // proceed to save rowData
           // let savedFilename = `${path.parse(filename1).name}-${path.parse(filename2).name}.csv`
-          let savedFilename = `${path.parse(filename1).name}-tr.csv`
+          savedFilename = `${path.parse(filename1).name}-tr.csv`
 
           savedFilename = path.join(path.parse(path.resolve(filename1)).dir, savedFilename)
 
-          logger.debug(' savedFilename: ', savedFilename)
+          logger.debug('SaveCsv savedFilename: ', savedFilename)
 
           converter.json2csv(rowData, (err, csv) => {
             if (err) {
@@ -905,74 +1182,8 @@ const menuTemplate = [
       {
         label: 'TargetLang1',
         // visible: false,
-        // enabled: false,
-        submenu: [
-          {
-            label: "en",
-            enabled: false,
-            checked: false,
-            type: 'radio',
-            click: e => {
-              logger.debug(' TargetLang1 checkbox ')
-                dialog.showMessageBox(
-                  {
-                    title: 'coming soon...',
-                    message: `Not implemented yet, stay tuned.`,
-                    buttons: ['OK'],
-                    type: 'info'
-                  }
-                )
-              targetLang1_en = false
-              ns.set('targetLang1_en', targetLang1_en)
-            }
-          },
-          {
-            label: 'zh',
-            enabled: false,
-            checked: false,
-            type: 'radio',
-          },
-          {
-            label: 'de',
-            enabled: false,
-            checked: false,
-            type: 'radio',
-          },
-          {
-            label: 'fr',
-            enabled: false,
-            checked: false,
-            type: 'radio',
-          },
-          {
-            label: 'it',
-            enabled: false,
-            checked: false,
-            type: 'radio',
-            // visible: false
-          },
-          {
-            label: 'ru',
-            enabled: false,
-            checked: false,
-            type: 'radio',
-            // visible: false
-          },
-          {
-            label: 'ja',
-            enabled: false,
-            checked: false,
-            type: 'radio',
-            // visible: false
-          },
-          {
-            label: 'dummy',
-            enabled: true,
-            checked: true,
-            type: 'radio',
-            visible: false
-          },
-        ]
+        enabled: true,
+        submenu: submenuTargetLang1,
       },
       {
         label: 'TargetLang2',
@@ -1004,6 +1215,27 @@ const menuTemplate = [
             checked: false,
             type: 'radio',
           }
+        ]
+      },
+      {
+        label: 'DocxFormat',
+        submenu: [
+          {
+            label: 'topdown',
+            checked: ns.get('rowdata2file') === 'rowdata2docx' ? true : false,
+            type: 'radio',
+            click: evt => {
+              ns.set('rowdata2file', 'rowdata2docx')
+            },
+          },
+          {
+            label: 'side-by-side',
+            checked: ns.get('rowdata2file') === 'rowdata2docx' ? false : true,
+            type: 'radio',
+            click: evt => {
+              ns.set('rowdata2file', 'rowdata2docx_t')
+            },
+          },
         ]
       },
     ]
