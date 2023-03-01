@@ -246,7 +246,13 @@ const checkPort = async (opts={}) => {
 
 // python-shell <=> rowdata2file in python
 const onSaveDocx = () => {
-  const pyscript = path.join(__dirname, 'pyscript.py')
+  // const pyscript = path.join(__dirname, 'app', 'pyscript.py')
+  let pyscript
+  if (app.isPackaged) {
+    pyscript = path.join(process.resourcesPath, 'app', 'pyscript.py')
+  } else {
+    pyscript = path.join(__dirname, 'app', 'pyscript.py')
+  }
   logger.debug('onSaveDocx pyscript.py: %s', pyscript)
 
   // pythonPath = path.join(process.resourcesPath, 'app', 'install', 'python.exe')
