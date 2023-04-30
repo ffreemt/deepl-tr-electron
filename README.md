@@ -11,11 +11,9 @@ deepl translate using deepl-scraper-pp2, electron and ag-grid
     * topdown format: source text highlighted, ready for one-click-hide
 
     * side-by-side format: a two-column table
-
+  * (new) Save translated text only (Save(trtxt)
 ![docx](https://raw.githubusercontent.com/ffreemt/deepl-tr-electron/main/data/docx.png)
  ![docxtable](https://raw.githubusercontent.com/ffreemt/deepl-tr-electron/main/data/docx-t.png)
-
-Note '/' in source text will be replaced by '-' to circumvent a werid problem (text following '/' is discarded).
 
 ## Installation (currently Windows only)
 Download from [https://github.com/ffreemt/deepl-tr-electron/releases](https://github.com/ffreemt/deepl-tr-electron/releases) and click through.
