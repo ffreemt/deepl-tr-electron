@@ -227,7 +227,7 @@ ipcRenderer.on('file1-content',
 
 ipcRenderer.on('rowData',
   async (evt, rowData) => {
-    console.log(' ipcRenderer.on("rowdata"): %o', rowData)
+    console.log(' ipcRenderer.on("rowdata"): ', JSON.stringify(rowData))
     gridOptions.api.setRowData(rowData);
     // restoreFromFile1(result)
   }

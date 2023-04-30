@@ -17,7 +17,7 @@ const logger = require('tracer').colorConsole({
 const port = 8000
 
 // const restAlign = async (lines1, lines2, url = null, split2sents = false) => {
-const deeplTranslate = async (text, url=null, fromLang=null, toLang=null) => {
+const deeplTranslate = async (text, fromLang=null, toLang=null, url=null) => {
   // text is string not list
 
   // if (!url) url = `http://forindo.net:${port}/post/`

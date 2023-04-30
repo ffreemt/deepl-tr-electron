@@ -77,7 +77,6 @@ const lines2 = () => {
 // const headers = ['text1', 'text2', 'metric']
 // const columnDefs = headers.map(el => { return { headerName: el, field: el } })
 
-
 console.log("index.js ln80 path.join(process.resourcesPath, 'app'): ", path.join(process.resourcesPath, 'app'))
 console.log("index.js ln80 path.join(__dirname, 'app'): ", path.join(__dirname, 'app'))
 
@@ -117,7 +116,6 @@ try {
 }
 
 // *********/
-
 
 let mainWindow
 let col1 = []
@@ -172,7 +170,7 @@ const langList = ['zh', 'en', 'de', 'fr', 'es', 'pt', 'it', 'nl', 'pl', 'ru', 'j
 const defaultPref = {
   splitToSents: false,
   splitToSentsEnabled: true,
-  windowBounds: { width: 800, height: 600 },
+  windowBounds: { x: 10, y: 10,  width: 800, height: 600 },
   menuChecked: false,
   aliEngine: 'http://forindo.net:5555',
   aliEngineChecked: 'forindo_dezbee',
@@ -222,13 +220,13 @@ const checkPort = async (opts={}) => {
 
   // try 5 times
   for (const _ of [...Array(5).keys()]){
-    logger.debug(` checkPort ${_ + 1}/5`)
+    logger.debug(` check Port ${_ + 1}/5`)
     try {
       await waitOn(opts)
       return 'server ready'
     } catch (e) {
       // return e.name + ': ' + e.message
-      logger.error(`checkPort: failed ${_ + 1} - ${e.name}: ${e.message}`)
+      logger.error(`check Port: failed ${_ + 1} - ${e.name}: ${e.message}`)
       if (_ >= 4) {
         throw e
       } else {
@@ -274,14 +272,6 @@ const onSaveDocx = () => {
   if (ns.get('rowdata2file').endsWith('docx_t')) {
     fileloc = fileloc.replace(/\.docx$/, '-t.docx')
   }
-  dialog.showMessageBox(
-    {
-      message: `Saving file at ${fileloc}`,
-      title: 'Info',
-      buttons: ['OK'],
-      type: 'info' // none/info/error/question/warning
-    }
-  )
 
   pyshell.on('message', (result) => {
     logger.debug('result: %s', result)
@@ -311,6 +301,15 @@ the program and hopefully it will temporarily fix the problem.
             type: 'error' // none/info/error/question/warning
           }
         )
+    } else {
+      dialog.showMessageBox(
+        {
+          title: 'Info',
+          message: `Saved file to ${fileloc}`,
+          buttons: ['OK'],
+          type: 'info' // none/info/error/question/warning
+        }
+  )
     }
   })
 }
@@ -491,7 +490,7 @@ const handleCommunication = () => {
 
 const createWindow = () => {
   // Use saved window size in user-preferences
-  const { width, height } = ns.get('windowBounds') || defaultPref.windowBounds
+  const { x, y, width, height } = ns.get('windowBounds') || defaultPref.windowBounds
 
   // const mainWindow = new BrowserWindow({
   mainWindow = new BrowserWindow({
@@ -502,16 +501,19 @@ const createWindow = () => {
       contextIsolation: false,
       enableRemoteModule: true
     },
+    x,
+    y,
     width,
-    height
+    height,
+    icon: path.join(__dirname, 'electron-logo.png'),
   })
 
   mainWindow.on('resize', () => {
     // The event doesn't pass us the window size, so we call the `getBounds` method which returns an object with
     // the height, width, and x and y coordinates.
-    const { width, height } = mainWindow.getBounds()
+    const { x, y, width, height } = mainWindow.getBounds()
     // Now that we have them, save them using the `set` method.
-    ns.set('windowBounds', { width, height })
+    ns.set('windowBounds', { x, y, width, height })
   })
 
   // mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY);
@@ -627,7 +629,7 @@ const submenuTargetLang1b = langList.map(
     click: evt => {handleTargetLang1(`'${label}'`);logger.debug('targetlang set to ', label);}
   })
 )
-logger.debug('submenuTargetLang1: %j', submenuTargetLang1)
+// logger.debug('submenuTargetLang1: %j', submenuTargetLang1)
 
 const submenuTargetLang1a = [
   {
@@ -815,7 +817,7 @@ Looks like the local deepl server is not running for some reason. `,
             )
             return
           } finally {
-            progressBar.setCompleted()
+            // progressBar.setCompleted()
           }
 
           // let rowData  // moved to top as global
@@ -831,7 +833,8 @@ Looks like the local deepl server is not running for some reason. `,
               // rowData = await restAlign(col1, col2, 'http://forindo.net:7860/api/predict')
             // }
             // trtext = await deeplTranslate(col1.join('\n'))
-            pairsList = await trText(col1.join('\n'))
+            // pairsList = await trText(col1.join('\n'))
+            pairsList = await trText(col1.join('\n'), null, ns.get('targetLang1'))
 
             // logger.debug('trtext: %s', trtext)
             logger.debug('pairsList.slice(0, 5): %j', pairsList.slice(0, 5))
@@ -847,7 +850,10 @@ Looks like the local deepl server is not running for some reason. `,
               }
             )
             // trtext = e.name + ': ' + e.message
-            pairsList = [[e.name, e.message]]
+
+            // pairsList = [[e.name, e.message]]
+            // give up upon errors
+            return
           } finally {
             progressBar.setCompleted()
           }
@@ -1016,6 +1022,71 @@ Looks like the local deepl server is not running for some reason. `,
             }
           })
         }
+      },
+      {
+        label: 'Save(trtxt)',
+        click: async () => {
+          logger.debug('SaveTrxt clicked...')
+
+          if (!rowData) { // undefined or empty
+            dialog.showMessageBox(
+              {
+                message: 'Empty data...Try to load a file or paste some text to a cell in text1  first.',
+                title: 'Warning',
+                buttons: ['OK'],
+                type: 'warning'
+              }
+            )
+            return null
+          }
+          savedFilename = `${path.parse(filename1).name}-tr.txt`
+
+          savedFilename = path.join(path.parse(path.resolve(filename1)).dir, savedFilename)
+
+          logger.debug('SaveTrtxt savedFilename: ', savedFilename)
+
+          // convert text2 of rowData to trtxt
+          let trtxt
+          try {
+            trtxt = rowData.map( _ => _.text2 ).join('\n') }
+          catch (e) {
+            trtxt = `${e.name}: ${e.message}`
+            logger.error(e)
+            dialog.showMessageBox(
+              {
+                message: `${e.name}: ${e.message}`,
+                title: 'Error',
+                buttons: ['OK'],
+                type: 'error'
+              }
+            )
+          }
+          // save trtxt
+          try {
+            fs.writeFileSync(savedFilename, `\ufeff${trtxt}`, 'utf8')
+
+            // const arr = iconv.encode (str, 'GB2312')
+            // fs.writeFileSync(savedFilename, arr, 'hex')
+            dialog.showMessageBox(
+              {
+                message: `${path.resolve(savedFilename)} saved`,
+                title: 'Info',
+                buttons: ['OK'],
+                type: 'info'
+              }
+            )
+          } catch (e) {
+            logger.error(e)
+            dialog.showMessageBox(
+              {
+                message: 'Unable to save, ' + e.message,
+                title: 'Warning',
+                buttons: ['OK'],
+                type: 'warning'
+              }
+            )
+          }
+          }
       },
       {
         label: app.getName(),

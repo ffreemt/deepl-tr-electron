@@ -11,7 +11,7 @@ const logger = require('tracer').colorConsole({
   level: process.env.TRACER_DEBUG || 'info' // set TRACER_DEBUG=debug
 })
 
-const trText = async (text, fromLang = null, to_lang = null, limit = null) => {
+const trText = async (text, fromLang = null, toLang = null, limit = null) => {
   /*
     const splitText = require('./src/splitText');const zipLongest = require('./src/zipLongest');const deeplTranslate = require('./src/deeplTranslate');
 
@@ -20,20 +20,25 @@ const trText = async (text, fromLang = null, to_lang = null, limit = null) => {
   */
 
   // for some reason, text following / is ignored, hence the subs
-  text = text.replace(/\//g, '-')
+  // text = text.replace(/\//g, '-')
+  text = text.replace(/\//g, 'slash__') // handle slash 1
 
   let res = []
   // splitText(text).forEach( el =>
-  for (const el of splitText(text)) {
+  for (let el of splitText(text)) {
     let trel
     try {
-      trel = await deeplTranslate(el, fromLang, to_lang)
+      logger.debug('\n\t\t fromLang, toLang =', fromLang, toLang)
+      trel = await deeplTranslate(el, fromLang, toLang)
     } catch (e) {
       logger.error(e)
       trel = e.name + ': ' + e.message
     }
 
     // logger.debug(typeof trel)
+    el = el.replace(/slash__/g, '/') // handle slash 2
+    trel = trel.replace(/slash__/g, '/') // handle slash 2
+
     if (el.split(/[\r\n]+/).length !== trel.split(/[\r\n]+/).length) {
       logger.warn(' text paras # and trtext paras # not equal \n\t this may indicate a potential problem, but we proceed nevertheless ')
     }
