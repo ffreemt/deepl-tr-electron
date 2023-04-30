@@ -7,11 +7,11 @@ deepl translate using deepl-scraper-pp2, electron and ag-grid
 
 ## Features
   * Translate between various languages pairs (select a target language from Options)
+  * (new) Save translated text only (Save(trtxt)
   * Save .csv and .docx (topdown and side-by-side)
     * topdown format: source text highlighted, ready for one-click-hide
 
     * side-by-side format: a two-column table
-  * (new) Save translated text only (Save(trtxt)
 ![docx](https://raw.githubusercontent.com/ffreemt/deepl-tr-electron/main/data/docx.png)
  ![docxtable](https://raw.githubusercontent.com/ffreemt/deepl-tr-electron/main/data/docx-t.png)
 
