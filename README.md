@@ -21,7 +21,7 @@ Download from [https://github.com/ffreemt/deepl-tr-electron/releases](https://gi
 ## Usuage
 
 * Execute the app as usual
-* Click a cell or press Enter to edit; Click some other cell or rress Enter to exit editing.
+* Click a cell or press Enter to edit; Click some other cell or press Enter to exit editing.
 * ctrl-T to translate or click menu File/DeeplTr
 
 ## For Developers
