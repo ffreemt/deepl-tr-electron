@@ -1,6 +1,6 @@
 {
   "name": "deepl-tr-el",
-  "version": "0.1.0-2",
+  "version": "0.1.0-3",
   "description": "deepl translate using electron, deepl-scraper-pp2 and ag-grid",
   "main": "src/index.js",
   "main1": "index.js",
