@@ -3,7 +3,7 @@
 
 deepl translate using deepl-scraper-pp2, electron and ag-grid
 
-![deepl-tr-electron illustrated](https://raw.githubusercontent.com/ffreemt/deepl-tr-electron/main/data/deepl-tr-electron.png)
+![deepl-tr-electron-pw-8001 illustrated](https://raw.githubusercontent.com/ffreemt/deepl-tr-electron/main/data/deepl-tr-electron-pw-8001.png)
 
 ## Features
   * Translate between various languages pairs (select a target language from Options)
