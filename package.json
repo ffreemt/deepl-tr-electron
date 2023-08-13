@@ -10,8 +10,10 @@
     "builder": "electron-builder --win",
     "builder-test": "electron-builder --win --dir",
     "builder-yaml": "electron-builder --win --config builder-config.yaml",
-    "test": "mocha -t 9000",
-    "testj": "jest --testTimeout 9000"
+    "memo": "echo start fastapi server in src/app first  python -m ",
+    "testm": "mocha -t 9000 test/deeplTranslate.test.js",
+    "memo1": "echo runInBand runs test sequentially due to commonly used browser instance (maybe use context)",
+    "test": "jest --testTimeout 30000 --runInBand "
   },
   "keywords": [
     "deepl",
@@ -27,7 +29,8 @@
     "electron": "^22.2.0",
     "electron-builder": "^23.6.0",
     "esm": "^3.2.25",
-    "jest": "^29.4.3",
+    "jest": "^29.6.2",
+    "mocha": "^10.2.0",
     "nodemon": "^2.0.20"
   },
   "dependencies": {

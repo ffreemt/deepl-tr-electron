@@ -1,5 +1,6 @@
 function splitText (text, limit = null) {
-  if (limit === null) limit = 3000
+  // if (limit === null) limit = 3000 // 5000
+  if (limit === null) limit = 1300 // 1500
   const chunks = []
   const paragraphs = text.split(/[\n\r]+/)
   let currentChunk = paragraphs[0] + '\n'

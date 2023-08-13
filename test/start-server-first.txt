@@ -1,0 +1,6 @@
+cd C:\mat-dir\pypi-projects\deepl-fastapi-playwright
+call-activate
+python -m deepl_fastapi_pw
+
+or
+src\app\python -m deepl_fastapi_pw

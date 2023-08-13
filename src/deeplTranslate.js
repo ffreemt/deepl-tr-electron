@@ -14,7 +14,8 @@ const logger = require('tracer').colorConsole({
 
 // const port = 5555
 // const port = 8104
-const port = 8000
+// const port = 8000
+const port = 8001
 
 // const restAlign = async (lines1, lines2, url = null, split2sents = false) => {
 const deeplTranslate = async (text, fromLang=null, toLang=null, url=null) => {

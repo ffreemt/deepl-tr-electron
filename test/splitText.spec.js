@@ -13,6 +13,7 @@ const logger = require('tracer').colorConsole({
 })
 
 const file1 = './data/test-en.txt'
+// const file1 = '../data/test-en.txt'
 // const file2 = '../data/test-zh.txt'
 
 const lines1 = file2lines(file1)
@@ -23,8 +24,8 @@ const lines1 = file2lines(file1)
 describe('@1-splitText-sanity-test', () => {
   // context(' ==== ', () => {
 
-    test('#1-splitText-test-en.txt', async () => {
-      /*
+  test('#1-splitText-test-en.txt', async () => {
+    /*
         const expect = require('chai').expect; const file2lines = require('./src/file2lines'); const splitText = require('./src/splitText'); const logger = require('tracer').colorConsole();
         const file1 = './data/test-en.txt'; const lines1 = file2lines(file1);
 
@@ -38,30 +39,33 @@ describe('@1-splitText-sanity-test', () => {
         const lines1 = file2lines(file1)
 
        */
-      numb = 3
-      const result = splitText(lines1.slice(0, numb).join("\n"))
-      logger.debug('result: %s', result)
-      // console.log(result)
+    const numb = 3
+    const result = splitText(lines1.slice(0, numb).join('\n'))
+    logger.debug('result: %s', result)
+    // console.log(result)
 
-      // assert(result.length > 9)
-      // assert(result[result.length -1][1].includes('小姐'))
+    // assert(result.length > 9)
+    // assert(result[result.length -1][1].includes('小姐'))
 
-      expect(result[0].split(/\n/).length).to.equal(numb)
-    })
+    // lines1.slice(0, numb).join("\n").length: 108 < 1300
+    expect(result.length).to.equal(1)
+    expect(result[0].split(/\n/).length).to.equal(numb)
+  })
 
-    test('#2-splitText-test-en.txt', () => {
-      numb = 10
-      const result = splitText(lines1.slice(0, numb).join("\n"))
-      expect(result[0].split(/\n/).length).to.equal(numb)
-    })
+  // lines1.slice(0, 10).join("\n").length 1882 => 2
+  test('#2-splitText-test-en.txt', () => {
+    const numb = 10
+    const result = splitText(lines1.slice(0, numb).join('\n'))
+    expect(result.length).to.equal(2)
+    expect(result[0].split(/\n/).length + result[1].split(/\n/).length).to.equal(numb)
+  })
 
-    test('#3-splitText-test-en.txt', () => {
-      const result = splitText(lines1.join("\n"))
+  test('#3-splitText-test-en.txt', () => {
+    const result = splitText(lines1.join('\n'))
 
-      lens = result.map(el => el.split('\n').length)
-      // const sum = vector.reduce((acc, val) => acc + val, 0)
-      expect( lens.reduce((acc, val) => acc + val, 0)).to.equal(lines1.length);
-    })
+    const lens = result.map(el => el.split('\n').length)
+    // sum of lens == lines1.length
+    expect(lens.reduce((acc, val) => acc + val, 0)).to.equal(lines1.length)
+  })
   // })
-
 })

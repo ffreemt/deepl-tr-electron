@@ -92,7 +92,8 @@ if (app.isPackaged) {
 const { spawn } = require('node:child_process')
 
 const run_deepl_server = () => {
-  const python = spawn(pythonPath, ['-s', '-m', 'deepl_scraper_pp2.run_uvicorn'])
+  // const python = spawn(pythonPath, ['-s', '-m', 'deepl_scraper_pp2.run_uvicorn'])
+  const python = spawn(pythonPath, ['-s', '-m', 'deepl_fastapi_pw'])
 
   python.stdout.on('data', data => {
     console.log(`stdout: ${data}`)
@@ -213,7 +214,8 @@ logger.debug('store.store: ', ns.store)
 
 const waitOn = require('wait-on')
 const checkPort = async (opts={}) => {
-  if (!opts.port) opts.port = 8000
+  // if (!opts.port) opts.port = 8000
+  if (!opts.port) opts.port = 8001
   if (!opts.timeout) opts.timeout = 15000 // 15s
   opts.resources = [ `http://127.0.0.1:${opts.port}/docs` ]
   delete opts.port
@@ -361,7 +363,7 @@ const loadFile = async (win, file = 1) => {
       filters: [
         {
           name: 'textfile',
-          extensions: ['txt', 'md']
+          extensions: ['txt', 'md', 'srt']
         }
       ]
     })
@@ -913,11 +915,24 @@ Looks like the local deepl server is not running for some reason. `,
           }
         }
       },
+      { type: 'separator' },
       {
         label: 'Save(docx)',
         accelerator: 'CmdOrCtrl+S',
         click: async () => {
           logger.debug('SaveDocx clicked...')
+
+          if (typeof rowData === 'undefined') {
+              dialog.showMessageBox(
+                  {
+                      message: 'Empty data...Try to load a file or paste some text to a cell in text1 first.',
+                      title: 'Warning',
+                      buttons: ['OK'],
+                      type: 'warning'
+                  }
+              )
+              return null
+          }
 
           if (!rowData) { // undefined or empty
             dialog.showMessageBox(
@@ -952,6 +967,18 @@ Looks like the local deepl server is not running for some reason. `,
         // accelerator: 'CmdOrCtrl+S',
         click: async () => {
           logger.debug('SaveCsv clicked...')
+
+          if (typeof rowData === 'undefined') {
+              dialog.showMessageBox(
+                  {
+                      message: 'Empty data...Try to load a file or paste some text to a cell in text1 first.',
+                      title: 'Warning',
+                      buttons: ['OK'],
+                      type: 'warning'
+                  }
+              )
+              return null
+          }
 
           if (!rowData) { // undefined or empty
             dialog.showMessageBox(
@@ -1027,6 +1054,18 @@ Looks like the local deepl server is not running for some reason. `,
         label: 'Save(trtxt)',
         click: async () => {
           logger.debug('SaveTrxt clicked...')
+
+          if (typeof rowData === 'undefined') {
+              dialog.showMessageBox(
+                  {
+                      message: 'Empty data...Try to load a file or paste some text to a cell in text1 first.',
+                      title: 'Warning',
+                      buttons: ['OK'],
+                      type: 'warning'
+                  }
+              )
+              return null
+          }
 
           if (!rowData) { // undefined or empty
             dialog.showMessageBox(

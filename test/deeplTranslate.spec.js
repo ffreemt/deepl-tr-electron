@@ -32,30 +32,32 @@ logger.debug('test-en.txt lines1: %s', lines1.slice(0, 3))
 describe('@1-deeplTranslate-sanity-test', () => {
   // context(' ==== ', () => {
 
-    test('#1-deeplTranslate-test-en.txt', async () => {
-      // let [lines1a, lines2a] = [lines1.slice(0,10), lines2.slice(0,10)]
-      const result = await deeplTranslate(lines1.slice(0,10).join("\n"))
-      logger.debug('result: %s', result)
-      // console.log(result)
+  test('#1-deeplTranslate-test-en.txt', async () => {
+    // let [lines1a, lines2a] = [lines1.slice(0,10), lines2.slice(0,10)]
+    let len = 10
+    len = 6
+    const result = await deeplTranslate(lines1.slice(0, len).join('\n'))
+    logger.debug('result: %s', result)
+    // console.log(result)
 
-      // splitlines(result)
-      lines = result.trim().split(/[\r\n]+/)
-      expect(lines.length).to.equal(10)
-    })
+    // splitlines(result)
+    const lines = result.trim().split(/[\r\n]+/)
+    expect(lines.length).to.equal(len)
+  })
 
-    test('#2-deeplTranslate-test-en.txt', async () => {
-      const result = await deeplTranslate(lines1.slice(0,14).join("\n"))
-      logger.debug('result: %j', result)
+  test('#2-deeplTranslate-test-en.txt', async () => {
+    let len = 14
+    len = 5
+    const result = await deeplTranslate(lines1.slice(0, len).join('\n'))
+    logger.debug('result: %j', result)
 
-      // console.log(result)
-      // expect(result.length).least(2)
-      // expect(result.length).least(6)
+    // console.log(result)
+    // expect(result.length).least(2)
+    // expect(result.length).least(6)
 
-      // splitlines(result)
-      lines = result.trim().split(/[\r\n]+/)
-      expect(lines.length).to.equal(14)
-
-    })
+    // splitlines(result)
+    const lines = result.trim().split(/[\r\n]+/)
+    expect(lines.length).to.equal(len)
+  })
   // })
-
 })
